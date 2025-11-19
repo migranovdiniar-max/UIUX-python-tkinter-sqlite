@@ -4,7 +4,9 @@ from app.db import get_connection
 
 
 class VocabularyWindow:
-    def __init__(self):
+    def __init__(self, user):
+        self.user = user
+
         self.win = tk.Toplevel()
         self.win.title("Vocabulary")
         self.win.geometry("700x400")
@@ -23,12 +25,16 @@ class VocabularyWindow:
 
         frame = tk.Frame(self.win)
         frame.pack(fill='x', pady=6)
+
+        # все кнопки доступны для всех
         tk.Button(frame, text="Add", command=self.add_word).pack(side="left", padx=5)
         tk.Button(frame, text="Edit", command=self.edit_word).pack(side="left", padx=5)
         tk.Button(frame, text="Delete", command=self.delete_word).pack(side="left", padx=5)
         tk.Button(frame, text="Refresh", command=self.load_data).pack(side="left", padx=5)
 
         self.load_data()
+
+
 
     def load_data(self):
         for r in self.tree.get_children():

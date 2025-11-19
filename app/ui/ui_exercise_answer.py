@@ -2,8 +2,17 @@ import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
 from app.db import get_connection
 
+
 class ExerciseAnswerWindow:
-    def __init__(self):
+    def __init__(self, user):
+        self.user = user
+
+        #  проверка роли
+        if self.user["role"] == "student":
+            import tkinter.messagebox as messagebox
+            messagebox.showerror("Access denied", "You have no permission to view model answers.")
+            return  # окно не создаём
+
         self.win = tk.Toplevel()
         self.win.title("Exercise Answers (master)")
         self.win.geometry("800x420")

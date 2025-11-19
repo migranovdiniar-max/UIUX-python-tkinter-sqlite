@@ -3,10 +3,12 @@ from tkinter import ttk, simpledialog, messagebox
 from app.db import get_connection
 
 class DefinitionWindow:
-    def __init__(self):
+    def __init__(self, user):
+        self.user = user
         self.win = tk.Toplevel()
         self.win.title("Definitions")
         self.win.geometry("820x420")
+        self.can_edit = self.user["role"] != "student"  # студент не редактирует
 
         cols = ("definition_id","word_id","word","ru_translation","def","example")
         self.tree = ttk.Treeview(self.win, columns=cols, show="headings")

@@ -3,7 +3,8 @@ from tkinter import ttk, simpledialog, messagebox
 from app.db import get_connection
 
 class ExerciseWindow:
-    def __init__(self):
+    def __init__(self, user):
+        self.user = user
         self.win = tk.Toplevel()
         self.win.title("Exercises")
         self.win.geometry("900x420")

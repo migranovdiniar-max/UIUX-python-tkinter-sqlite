@@ -25,17 +25,20 @@ class MainWindow:
         frame = tk.Frame(self.win)
         frame.pack(expand=True)
 
-        # Создаём кнопки
-        buttons = [
-            ("Topics", self.open_topics),
-            ("Grammar Rules", self.open_grammar),
-            ("Vocabulary", self.open_vocabulary),
-            ("Definition", self.open_definition),
-            ("Exercises", self.open_exercises),
-            ("Exercise Answers", self.open_exercise_answers),
-            ("User Answers", self.open_user_answers),
-            ("Users", self.open_users)
-        ]
+        buttons = []
+
+        # Доступно всем
+        buttons.append(("Topics", self.open_topics))
+        buttons.append(("Grammar Rules", self.open_grammar))
+        buttons.append(("Vocabulary", self.open_vocabulary))
+        buttons.append(("Definition", self.open_definition))
+        buttons.append(("Exercises", self.open_exercises))
+        buttons.append(("User Answers", self.open_user_answers))
+
+        # Студенты НЕ должны видеть эти меню
+        if self.user["role"] in ("admin", "teacher"):
+            buttons.append(("Exercise Answers (ETALON)", self.open_exercise_answers))
+            buttons.append(("Users", self.open_users))
 
         for text, cmd in buttons:
             tk.Button(frame, text=text, width=25, height=2, command=cmd)\
@@ -44,25 +47,25 @@ class MainWindow:
         self.win.mainloop()
 
     def open_topics(self):
-        TopicWindow()
+        TopicWindow(self.user)
 
     def open_grammar(self):
-        GrammarWindow()
+        GrammarWindow(self.user)
 
     def open_vocabulary(self):
-        VocabularyWindow()
+        VocabularyWindow(self.user)
 
     def open_definition(self):
-        DefinitionWindow()
+        DefinitionWindow(self.user)
 
     def open_exercises(self):
-        ExerciseWindow()
+        ExerciseWindow(self.user)
 
     def open_exercise_answers(self):
-        ExerciseAnswerWindow()
+        ExerciseAnswerWindow(self.user)
 
     def open_user_answers(self):
         UserExerciseWindow(self.user)
 
     def open_users(self):
-        UsersWindow()
+        UsersWindow(self.user)
