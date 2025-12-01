@@ -21,8 +21,19 @@ class ExerciseWindow:
         tk.Button(frame, text="Edit Exercise", command=self.edit_exercise).pack(side="left", padx=4)
         tk.Button(frame, text="Delete Exercise", command=self.delete_exercise).pack(side="left", padx=4)
         tk.Button(frame, text="Refresh", command=self.load_data).pack(side="left", padx=4)
+        tk.Button(frame, text="View User Answers", command=self.view_user_answers).pack(side="left", padx=4)
+
 
         self.load_data()
+
+    def view_user_answers(self):
+        sel = self.tree.selection()
+        if not sel:
+            messagebox.showinfo("Info", "Select an exercise")
+            return
+        ex_id = int(sel[0])
+        # Открыть окно с ответами пользователей для этого exercise_id
+        # Можно отфильтровать по exercise_id
 
     def load_data(self):
         for r in self.tree.get_children(): self.tree.delete(r)
@@ -93,6 +104,7 @@ class ExerciseWindow:
         conn.commit(); conn.close()
         self.load_data()
 
+    
 class ExerciseDialog:
     def __init__(self, parent, data=None, topics=None, load_rules=None):
         self.result = None

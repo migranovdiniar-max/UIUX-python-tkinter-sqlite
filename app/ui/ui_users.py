@@ -3,7 +3,8 @@ from tkinter import ttk, simpledialog, messagebox
 from app.db import get_connection
 
 class UsersWindow:
-    def __init__(self):
+    def __init__(self, user):
+        self.user = user
         self.win = tk.Toplevel()
         self.win.title("Users Management")
         self.win.geometry("700x400")

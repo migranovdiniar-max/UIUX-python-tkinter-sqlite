@@ -85,3 +85,27 @@ CREATE TABLE IF NOT EXISTS user_exercise_answer (
 -- -- DELETE FROM sqlite_sequence WHERE name='table_name';
 -- VACUUM;
 
+
+CREATE TABLE IF NOT EXISTS users (
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    role TEXT NOT NULL,
+    current_level TEXT,
+    start_date DATE,
+    target_level TEXT,
+    hashed_password TEXT NOT NULL  -- ← новое поле
+);
+
+
+CREATE TABLE IF NOT EXISTS users (
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    role TEXT NOT NULL,
+    current_level TEXT,
+    start_date DATE,
+    target_level TEXT,
+    hashed_password TEXT NOT NULL,
+    admin_token_hash TEXT  -- ← может быть NULL (для студентов)
+);

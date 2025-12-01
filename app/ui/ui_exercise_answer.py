@@ -7,17 +7,11 @@ class ExerciseAnswerWindow:
     def __init__(self, user):
         self.user = user
 
-        #  проверка роли
-        if self.user["role"] == "student":
-            import tkinter.messagebox as messagebox
-            messagebox.showerror("Access denied", "You have no permission to view model answers.")
-            return  # окно не создаём
-
         self.win = tk.Toplevel()
         self.win.title("Exercise Answers (master)")
         self.win.geometry("800x420")
 
-        cols = ("answer_id","exercise_id","answer_text","part_number")
+        cols = ("answer_id", "exercise_id", "answer_text", "part_number", "user_name", "is_complete", "created_at")
         self.tree = ttk.Treeview(self.win, columns=cols, show="headings")
         for c in cols:
             self.tree.heading(c, text=c)
@@ -33,38 +27,104 @@ class ExerciseAnswerWindow:
         self.load_data()
 
     def load_data(self):
-        for r in self.tree.get_children(): self.tree.delete(r)
-        conn = get_connection(); cur = conn.cursor()
-        cur.execute("SELECT * FROM exercise_answer")
-        for row in cur.fetchall():
-            self.tree.insert("", "end", iid=row["answer_id"], values=(row["answer_id"], row["exercise_id"], row["answer_text"], row["part_number"]))
-        conn.close()
+        for r in self.tree.get_children(): 
+            self.tree.delete(r)
 
+        conn = get_connection()
+        cur = conn.cursor()
+
+        if self.user["role"] == "student":
+            # Студент видит ТОЛЬКО свои ответы
+            cur.execute("""
+                SELECT ea.answer_id, ea.exercise_id, ea.answer_text, ea.part_number,
+                    ea.is_complete, strftime('%d.%m.%Y %H:%M', ea.created_at) AS created_at
+                FROM exercise_answer ea
+                WHERE ea.user_id = ?
+                ORDER BY ea.created_at DESC
+            """, (self.user["user_id"],))
+        else:
+            # Админ/учитель видит ВСЕ пользовательские ответы + может редактировать
+            cur.execute("""
+                SELECT ea.answer_id, ea.exercise_id, ea.answer_text, ea.part_number,
+                    u.name AS user_name, ea.is_complete, 
+                    strftime('%d.%m.%Y %H:%M', ea.created_at) AS created_at
+                FROM exercise_answer ea
+                LEFT JOIN users u ON u.user_id = ea.user_id
+                WHERE ea.user_id IS NOT NULL
+                ORDER BY ea.created_at DESC
+            """)
+
+        for row in cur.fetchall():
+            values = (
+                row["answer_id"],
+                row["exercise_id"],
+                row["answer_text"],
+                row["part_number"],
+                row["user_name"] if self.user["role"] != "student" else "",
+                row["is_complete"],
+                row["created_at"]
+            )
+            self.tree.insert("", "end", iid=row["answer_id"], values=values)
+
+        conn.close()
+    
     def add_answer(self):
-        dlg = ExAnswerDialog(self.win)
-        self.win.wait_window(dlg.top)
-        if dlg.result:
-            conn = get_connection(); cur = conn.cursor()
-            cur.execute("INSERT INTO exercise_answer (exercise_id, answer_text, part_number) VALUES (?,?,?)",
-                        (dlg.result["exercise_id"], dlg.result["answer_text"], dlg.result["part_number"]))
-            conn.commit(); conn.close()
+        ex_id = simpledialog.askinteger("Exercise ID", "Enter Exercise ID:", parent=self.win)
+        if ex_id is None: return
+        ans = simpledialog.askstring("Your Answer", "Enter your answer:", parent=self.win)
+        if ans is None or not ans.strip(): return
+
+        # Только студент может добавить за себя
+        if self.user["role"] == "student":
+            user_id = self.user["user_id"]
+        else:
+            # Админ может выбрать user_id (упрощённо — можно оставить ввод)
+            user_id = simpledialog.askinteger("User ID", "Enter User ID:", parent=self.win)
+            if user_id is None: return
+
+        conn = get_connection()
+        cur = conn.cursor()
+        try:
+            cur.execute("""
+                INSERT INTO exercise_answer 
+                (exercise_id, answer_text, user_id, is_complete) 
+                VALUES (?, ?, ?, 0)
+            """, (ex_id, ans.strip(), user_id))
+            conn.commit()
             self.load_data()
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+        finally:
+            conn.close()
+
 
     def edit_answer(self):
         sel = self.tree.selection()
         if not sel: return
         aid = sel[0]
-        conn = get_connection(); cur = conn.cursor()
-        cur.execute("SELECT * FROM exercise_answer WHERE answer_id=?", (aid,))
-        r = cur.fetchone(); conn.close()
-        dlg = ExAnswerDialog(self.win, data=r)
-        self.win.wait_window(dlg.top)
-        if dlg.result:
-            conn = get_connection(); cur = conn.cursor()
-            cur.execute("UPDATE exercise_answer SET exercise_id=?, answer_text=?, part_number=? WHERE answer_id=?",
-                        (dlg.result["exercise_id"], dlg.result["answer_text"], dlg.result["part_number"], aid))
-            conn.commit(); conn.close()
-            self.load_data()
+
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT user_id, answer_text FROM exercise_answer WHERE answer_id=?", (aid,))
+        row = cur.fetchone()
+        if not row:
+            conn.close()
+            return
+
+        # Проверка: только владелец или админ
+        if self.user["role"] == "student" and row["user_id"] != self.user["user_id"]:
+            messagebox.showerror("Access denied", "You can only edit your own answers")
+            conn.close()
+            return
+
+        new_text = simpledialog.askstring("Edit Answer", "Update your answer:", initialvalue=row["answer_text"], parent=self.win)
+        if new_text is None: return
+
+        cur.execute("UPDATE exercise_answer SET answer_text=? WHERE answer_id=?", (new_text.strip(), aid))
+        conn.commit()
+        conn.close()
+        self.load_data()
+
 
     def delete_answer(self):
         sel = self.tree.selection()
