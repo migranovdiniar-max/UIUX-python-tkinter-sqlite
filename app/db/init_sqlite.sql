@@ -109,3 +109,4 @@ CREATE TABLE IF NOT EXISTS users (
     hashed_password TEXT NOT NULL,
     admin_token_hash TEXT  -- ← может быть NULL (для студентов)
 );
+
