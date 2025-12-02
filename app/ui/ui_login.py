@@ -3,6 +3,21 @@ from tkinter import messagebox
 from app.auth import authenticate, register_user
 from app.ui.ui_main import MainWindow
 
+
+import os
+import sys
+import customtkinter as ctk
+from tkinter import messagebox
+
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
@@ -13,7 +28,7 @@ class LoginWindow:
         self.root.title("EasyEng — Вход")
         self.root.geometry("450x580")
         self.root.resizable(False, False)
-        self.root.iconbitmap("app.ico")
+        self.root.iconbitmap(resource_path("app.ico"))
 
         main_frame = ctk.CTkFrame(self.root, corner_radius=15)
         main_frame.pack(pady=40, padx=30, fill="both", expand=True)

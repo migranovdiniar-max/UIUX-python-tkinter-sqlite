@@ -9,6 +9,23 @@ from app.ui.ui_users import UsersWindow
 from app.ui.ui_definition import DefinitionWindow
 
 
+import os
+import sys
+import customtkinter as ctk
+from tkinter import messagebox
+
+
+def resource_path(relative_path):
+    
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+    
+
+
 class MainWindow:
     def __init__(self, user):
         self.user = user
@@ -18,7 +35,7 @@ class MainWindow:
         self.root.title("EasyEng — Главное меню")
         self.root.geometry("1000x1000")
         self.root.resizable(False, False)
-        self.root.iconbitmap("app.ico")  # ← иконка окна 
+        self.root.iconbitmap(resource_path("app.ico"))
 
         # Заголовок
         title = ctk.CTkLabel(
