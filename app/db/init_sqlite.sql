@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS definition (
   FOREIGN KEY(word_id) REFERENCES vocabulary(word_id) ON DELETE CASCADE
 );
 
+
 CREATE TABLE IF NOT EXISTS exercise_answer (
   answer_id INTEGER PRIMARY KEY AUTOINCREMENT,
   exercise_id INTEGER,
@@ -110,3 +111,12 @@ CREATE TABLE IF NOT EXISTS users (
     admin_token_hash TEXT  -- ← может быть NULL (для студентов)
 );
 
+
+CREATE TABLE if not exists exercise_answer_part (
+    part_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    answer_id INTEGER NOT NULL,
+    part_number INTEGER NOT NULL,
+    answer_text TEXT,
+    FOREIGN KEY (answer_id) REFERENCES exercise_answer (answer_id) ON DELETE CASCADE,
+    UNIQUE(answer_id, part_number)
+);
